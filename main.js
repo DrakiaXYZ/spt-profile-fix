@@ -27,12 +27,25 @@ function handleFileSelect(event)
 
 function readerOnLoad(content)
 {
-	const locationItems = {};
 	const profile = JSON.parse(content);
+
+	fixMagAmmo(profile);
+	fixBuilds(profile);
+
+	// Create our download element and enable the download button
+	const profileHolder = document.getElementById('profileHolder');
+	profileHolder.value = JSON.stringify(profile, null, '\t');
+	enableDownload();
+}
+
+function fixMagAmmo(profile)
+{
+	const locationItems = {};
 
 	// Loop through `characters.pmc.Inventory.items` and find any item with a numeric `location` property
 	for (const item of profile.characters.pmc.Inventory.items)
 	{
+		// biome-ignore lint/suspicious/noGlobalIsNan: <explanation>
 		if (isNaN(item.location)) continue;
 
 		if (!locationItems[item.parentId])
@@ -49,18 +62,52 @@ function readerOnLoad(content)
 
 		for (const [index, item] of Object.entries(items))
 		{
-			if (item.location != index)
+			if (item.location !== index)
 			{
 				console.log(`Updating index of ${item._id} in ${item.parentId} from ${item.location} to ${index}`);
 			}
+			// biome-ignore lint/style/useNumberNamespace: <explanation>
 			item.location = parseInt(index);
 		}
 	}
+}
 
-	// Create our download element and enable the download button
-	const profileHolder = document.getElementById('profileHolder');
-	profileHolder.value = JSON.stringify(profile, null, '\t');
-	enableDownload();
+function fixBuilds(profile)
+{
+	for (const [buildType, builds] of Object.entries(profile.userbuilds))
+	{
+		// Skip null builds
+		if (!builds) continue;
+
+		// First fix the capitalization
+		for (const build of builds)
+		{
+			build.Id = build.Id || build.id;
+			build.Name = build.Name || build.name;
+			build.Root = build.Root || build.root;
+
+			// biome-ignore lint/performance/noDelete: <explanation>
+			delete build.id;
+			// biome-ignore lint/performance/noDelete: <explanation>
+			delete build.name;
+			// biome-ignore lint/performance/noDelete: <explanation>
+			delete build.root;
+		}
+
+		// Then look for duplicates, and keep the last one
+		const buildIndexes = {};
+		for (const [index, build] of Object.entries(builds).reverse())
+		{
+			if (buildIndexes[build.Id])
+			{
+				builds.splice(index, 1);
+				console.log(`[${buildType}] '${build.Name}' (${build.Id}) already exists at ${buildIndexes[build.Id]}, deleting at ${index}`);
+				continue;
+			}
+
+			buildIndexes[build.Id] = index;
+		}
+	}
 }
 
 function disableDownload()
@@ -89,13 +136,13 @@ function downloadProfile()
 	const fileElement = document.getElementById('profileFile');
 	const filename = fileElement.files[0].name;
 
-	var hiddenElement = document.createElement('a');
+	const hiddenElement = document.createElement('a');
 
-	hiddenElement.href = 'data:attachment/text,' + encodeURIComponent(profileJson);
+	hiddenElement.href = `data:attachment/text,${encodeURIComponent(profileJson)}`;
 	hiddenElement.target = '_blank';
 	hiddenElement.download = filename;
 	hiddenElement.click();
 	document.removeChild(hiddenElement);
 }
 
-(function(){main();})();
+(()=> {main();})();
