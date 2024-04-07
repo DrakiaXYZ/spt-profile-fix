@@ -45,8 +45,8 @@ function fixMagAmmo(profile)
 	// Loop through `characters.pmc.Inventory.items` and find any item with a numeric `location` property
 	for (const item of profile.characters.pmc.Inventory.items)
 	{
-		// biome-ignore lint/suspicious/noGlobalIsNan: <explanation>
-		if (isNaN(item.location)) continue;
+		// We only want to handle items that are in a "cartridges" slot
+		if (item.slotId !== "cartridges") continue;
 
 		if (!locationItems[item.parentId])
 		{
@@ -58,16 +58,23 @@ function fixMagAmmo(profile)
 	// Sort items by their location and fix any missing values
 	for (const [_, items] of Object.entries(locationItems))
 	{
-		items.sort((a, b) => a.location > b.location);
+		items.sort((a, b) => a.location ?? 0 > b.location ?? 0);
 
 		for (const [index, item] of Object.entries(items))
 		{
-			if (item.location !== index)
-			{
-				console.log(`Updating index of ${item._id} in ${item.parentId} from ${item.location} to ${index}`);
-			}
 			// biome-ignore lint/style/useNumberNamespace: <explanation>
-			item.location = parseInt(index);
+			const indexNum = parseInt(index);
+
+			if ((item.location ?? 0) !== indexNum)
+			{
+				console.log(`Updating index of ${item._id} in ${item.parentId} from ${item.location ?? 0} to ${indexNum}`);
+			}
+
+			// Only set the location if one was already set, or we're not setting it to 0 (Special handling for ammo boxes)
+			if (item.location !== undefined || indexNum !== 0)
+			{
+				item.location = indexNum;
+			}
 		}
 	}
 }
@@ -142,7 +149,6 @@ function downloadProfile()
 	hiddenElement.target = '_blank';
 	hiddenElement.download = filename;
 	hiddenElement.click();
-	document.removeChild(hiddenElement);
 }
 
 (()=> {main();})();
