@@ -31,6 +31,7 @@ function readerOnLoad(content)
 
 	fixMagAmmo(profile);
 	fixBuilds(profile);
+	fixBitcoin(profile);
 
 	// Create our download element and enable the download button
 	const profileHolder = document.getElementById('profileHolder');
@@ -58,12 +59,11 @@ function fixMagAmmo(profile)
 	// Sort items by their location and fix any missing values
 	for (const [_, items] of Object.entries(locationItems))
 	{
-		items.sort((a, b) => a.location ?? 0 > b.location ?? 0);
+		items.sort((a, b) => Number.parseInt(a.location ?? 0) > Number.parseInt(b.location ?? 0));
 
 		for (const [index, item] of Object.entries(items))
 		{
-			// biome-ignore lint/style/useNumberNamespace: <explanation>
-			const indexNum = parseInt(index);
+			const indexNum = Number.parseInt(index);
 
 			if ((item.location ?? 0) !== indexNum)
 			{
@@ -114,6 +114,26 @@ function fixBuilds(profile)
 
 			buildIndexes[build.Id] = index;
 		}
+	}
+}
+
+function fixBitcoin(profile)
+{
+	const bitcoinProductionId = "5d5c205bd582a50d042a3c0e";
+	const bitcoinProductionTime = 145000;
+
+	// Try to find the bitcoin production
+	const bitcoinProduction = profile?.characters?.pmc?.Hideout?.Production[bitcoinProductionId];
+	if (!bitcoinProduction)
+	{
+		return;
+	}
+
+	// Reset the bitcoin production time to its default value
+	if (bitcoinProduction.ProductionTime !== bitcoinProductionTime)
+	{
+		console.log(`Updating bitcoin production time from ${bitcoinProduction.ProductionTime} to ${bitcoinProductionTime}`);
+		bitcoinProduction.ProductionTime = bitcoinProductionTime;
 	}
 }
 
