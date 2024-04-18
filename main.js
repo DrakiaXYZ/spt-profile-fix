@@ -32,6 +32,7 @@ function readerOnLoad(content)
 	fixMagAmmo(profile);
 	fixBuilds(profile);
 	fixBitcoin(profile);
+	fixProductionProgress(profile);
 
 	// Create our download element and enable the download button
 	const profileHolder = document.getElementById('profileHolder');
@@ -134,6 +135,24 @@ function fixBitcoin(profile)
 	{
 		console.log(`Updating bitcoin production time from ${bitcoinProduction.ProductionTime} to ${bitcoinProductionTime}`);
 		bitcoinProduction.ProductionTime = bitcoinProductionTime;
+	}
+}
+
+function fixProductionProgress(profile)
+{
+	const productions = profile?.characters?.pmc?.Hideout?.Production;
+	if (!productions)
+	{
+		return;
+	}
+
+	for (const production of Object.values(productions))
+	{
+		if (production.Progress === null)
+		{
+			console.log(`Setting production progress to 0 for ${production.RecipeId}`);
+			production.Progress = 0;
+		}
 	}
 }
 
