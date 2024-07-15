@@ -164,12 +164,21 @@ function fixFleaRep(profile)
 	{
 		return;
 	}
-	const rating = profile.characters.pmc.RagfairInfo.rating;
 
-	if (rating === undefined || rating === null)
+	if (profile.characters.pmc.RagfairInfo.rating === null)
 	{
 		console.log('Ragfair rating is null, resetting to 0');
 		profile.characters.pmc.RagfairInfo.rating = 0.0;
+	}
+
+	// Loop through all the offers, and check their profile ratings
+	for (const offer of profile.characters.pmc.RagfairInfo.offers)
+	{
+		if (offer.user.rating === null)
+		{
+			console.log(`Ragfair offer ${offer._id} has null rating, setting to 0`);
+			offer.user.rating = 0;
+		}
 	}
 }
 
