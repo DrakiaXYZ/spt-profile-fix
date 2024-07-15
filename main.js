@@ -33,11 +33,20 @@ function readerOnLoad(content)
 	fixBuilds(profile);
 	fixBitcoin(profile);
 	fixProductionProgress(profile);
+	fixFleaRep(profile);
 
 	// Create our download element and enable the download button
 	const profileHolder = document.getElementById('profileHolder');
 	profileHolder.value = JSON.stringify(profile, null, '\t');
 	enableDownload();
+}
+
+function fixFleaRep(profile)
+{
+	if (profile.characters.pmc.RagfairInfo.rating == undefined)
+	{
+		profile.characters.pmc.RagfairInfo.rating = 0.0;
+	}
 }
 
 function fixMagAmmo(profile)
