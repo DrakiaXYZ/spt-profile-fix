@@ -33,6 +33,7 @@ function readerOnLoad(content)
 	fixBuilds(profile);
 	fixBitcoin(profile);
 	fixProductionProgress(profile);
+	fixFleaRep(profile);
 
 	// Create our download element and enable the download button
 	const profileHolder = document.getElementById('profileHolder');
@@ -153,6 +154,22 @@ function fixProductionProgress(profile)
 			console.log(`Setting production progress to 0 for ${production.RecipeId}`);
 			production.Progress = 0;
 		}
+	}
+}
+
+function fixFleaRep(profile)
+{
+	// Validate RagfairInfo exists at all, to avoid errors for partial profiles
+	if (!profile?.characters?.pmc?.RagfairInfo)
+	{
+		return;
+	}
+	const rating = profile.characters.pmc.RagfairInfo.rating;
+
+	if (rating === undefined || rating === null)
+	{
+		console.log('Ragfair rating is null, resetting to 0');
+		profile.characters.pmc.RagfairInfo.rating = 0.0;
 	}
 }
 
