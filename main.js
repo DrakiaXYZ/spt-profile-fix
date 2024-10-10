@@ -265,16 +265,16 @@ function fixStashTemplate(profile)
 	const stashAreaLevel = stashArea.level;
 	let expectedStashTemplate = stashTemplatesByAreaLevel[stashAreaLevel];
 
-	// If the stash template already matches, return
-	if (stashItem._tpl === expectedStashTemplate)
-	{
-		return;
-	}
-
 	// Special case for Unheard profiles
 	if (profile.info.edition === 'Unheard')
 	{
 		expectedStashTemplate = '6602bcf19cc643f44a04274b';
+	}
+
+	// If the stash template already matches, return
+	if (stashItem._tpl === expectedStashTemplate)
+	{
+		return;
 	}
 
 	console.log(`Current stash template ${stashItem._tpl}, expected stash template: ${expectedStashTemplate}. Updating`);
