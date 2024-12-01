@@ -283,6 +283,21 @@ function fixStashTemplate(profile)
 	addLogEntry('Fixed incorrect stash template');
 }
 
+function fixFavorites(profile)
+{
+	const inventory = profile.characters.pmc.Inventory;
+
+	const correctedFavorites = inventory.favoriteItems.map(favorite => {
+		return favorite._id ?? favorite;
+	});
+
+	if (JSON.stringify(correctedFavorites) != JSON.stringify(inventory.favoriteItems))
+	{
+		addLogEntry('Fixed incorrect profile favorites');
+		inventory.favoriteItems = correctedFavorites;
+	}
+}
+
 function fixDuplicateItems(profile, fixDuplicates)
 {
 	const inventory = profile.characters.pmc.Inventory;
@@ -331,6 +346,7 @@ function fixProfile(profile)
 	fixProductionProgress(profile);
 	fixFleaRep(profile);
 	fixStashTemplate(profile);
+	fixFavorites(profile);
 
 	// Pass in whether we should fix, or just report duplicates
 	const fixDuplicates = document.getElementById('removeDuplicates').checked;
