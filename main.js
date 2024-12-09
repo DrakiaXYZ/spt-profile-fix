@@ -339,6 +339,7 @@ function fixProfile(profile)
 	// Clear out any existing log
 	const logContainer = document.getElementById('log');
 	logContainer.innerText = '';
+	const profileSptVersion = profile.spt.version;
 
 	fixMagAmmo(profile);
 	fixBuilds(profile);
@@ -346,7 +347,12 @@ function fixProfile(profile)
 	fixProductionProgress(profile);
 	fixFleaRep(profile);
 	fixStashTemplate(profile);
-	fixFavorites(profile);
+
+	// Only run this for SPT 3.10
+	if (profileSptVersion.includes('3.10'))
+	{
+		fixFavorites(profile);
+	}
 
 	// Pass in whether we should fix, or just report duplicates
 	const fixDuplicates = document.getElementById('removeDuplicates').checked;
