@@ -298,6 +298,50 @@ function fixFavorites(profile)
 	}
 }
 
+function fixTraderDialogAttachments(profile)
+{
+	const dialogs = profile.dialogues;
+	let fixedDialogCount = 0;
+
+	for (const traderDialog of Object.values(dialogs))
+	{
+		for (const message of traderDialog?.messages)
+		{
+			// Skip any messages without attached items
+			if (!message.items?.data || !message.items?.stash)
+			{
+				continue;
+			}
+
+			// Skip any messages that don't have a stashId collision with the player's equipment ID
+			if (message.items?.stash !== profile.characters?.pmc?.Inventory?.equipment)
+			{
+				continue;
+			}
+
+			// Otherwise we need to generate a new unique stash ID for this message's attachments
+			message.items.stash = generateId();
+			message.items.data = adoptOrphanedItems(message.items.stash, message.items.data);
+
+			// Because `adoptOrphanedItems` sets the slotId to `hideout`, we need to re-set it to `main` to work with mail
+			for (const item of message.items.data)
+			{
+				if (item.slotId === "hideout")
+				{
+					item.slotId = "main";
+				}
+			}
+
+			fixedDialogCount++;
+		}
+	}
+
+	if (fixedDialogCount > 0)
+	{
+		addLogEntry(`Fixed ${fixedDialogCount} invalid dialog attachments`);
+	}
+}
+
 function fixDuplicateItems(profile, fixDuplicates)
 {
 	const inventory = profile.characters.pmc.Inventory;
@@ -348,10 +392,11 @@ function fixProfile(profile)
 	fixFleaRep(profile);
 	fixStashTemplate(profile);
 
-	// Only run this for SPT 3.10
+	// Only run these for SPT 3.10
 	if (profileSptVersion.includes('3.10'))
 	{
 		fixFavorites(profile);
+		fixTraderDialogAttachments(profile);
 	}
 
 	// Pass in whether we should fix, or just report duplicates
@@ -430,6 +475,37 @@ function addLogEntry(data, success = true)
 
 	const logContainer = document.getElementById('log');
 	logContainer.insertAdjacentHTML('beforeend', logTemplate);
+}
+
+function generateId()
+{
+    const timestamp = Math.floor(new Date().getTime() / 1000).toString(16);
+	const leftover = 24 - timestamp.length;
+    const objectId = timestamp + 'x'.repeat(leftover).replace(/[x]/g, () => {
+        return Math.floor(Math.random() * 16).toString(16);
+    }).toLowerCase();
+
+	return objectId;
+}
+
+function adoptOrphanedItems(rootId, items)
+{
+	for (const item of items)
+	{
+		// Check if the item's parent exists.
+		const parentExists = items.some((parentItem) => parentItem._id === item.parentId);
+
+		// If the parent does not exist and the item is not already a 'hideout' item, adopt the orphaned item by
+		// setting the parent ID to the PMCs inventory equipment ID, the slot ID to 'hideout', and remove the location.
+		if (!parentExists && item.parentId !== rootId && item.slotId !== "hideout")
+		{
+			item.parentId = rootId;
+			item.slotId = "hideout";
+			delete item.location;
+		}
+	}
+
+	return items;
 }
 
 (()=> {main();})();
