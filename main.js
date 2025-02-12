@@ -342,6 +342,34 @@ function fixTraderDialogAttachments(profile)
 	}
 }
 
+function fixTraderDialogMaxStorageTime(profile)
+{
+	const dialogs = profile.dialogues;
+	let fixedDialogCount = 0;
+
+	for (const traderDialog of Object.values(dialogs))
+	{
+		for (const message of traderDialog?.messages)
+		{
+			if (!Object.hasOwn(message, 'maxStorageTime'))
+			{
+				continue;
+			}
+
+			if (message.maxStorageTime === null)
+			{
+				message.maxStorageTime = 259200;
+				fixedDialogCount++;
+			}
+		}
+	}
+
+	if (fixedDialogCount > 0)
+	{
+		addLogEntry(`Fixed ${fixedDialogCount} invalid dialog maxStorageTime entries`);
+	}
+}
+
 function fixDuplicateItems(profile, fixDuplicates)
 {
 	const inventory = profile.characters.pmc.Inventory;
@@ -397,6 +425,7 @@ function fixProfile(profile)
 	{
 		fixFavorites(profile);
 		fixTraderDialogAttachments(profile);
+		fixTraderDialogMaxStorageTime(profile);
 	}
 
 	// Pass in whether we should fix, or just report duplicates
