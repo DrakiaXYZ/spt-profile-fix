@@ -60,15 +60,21 @@ function refreshProfile()
 		}
 		const profile = JSON.parse(profileJson);
 
+		// If this is a fresh profile, do nothing
+		if (!profile?.characters?.pmc?.Info)
+		{
+			addLogEntry('Unused profile, nothing to fix!');
+			return false;
+		}
+
 		// This is purely superfluous so we get any exceptions before the user hits Download
-		fixProfile(profile);
+		return fixProfile(profile);
 	} catch (ex) {
+		addLogEntry('Error processing profile', false);
 		console.error('Error parsing profile');
 		console.error(ex);
 		return false;
 	}
-
-	return true;
 }
 
 function fixMagAmmo(profile)
@@ -283,6 +289,17 @@ function fixStashTemplate(profile)
 	addLogEntry('Fixed incorrect stash template');
 }
 
+function fixProfileWipe(profile)
+{
+	if (!profile.info.wipe)
+	{
+		return;
+	}
+
+	profile.info.wipe = false;
+	addLogEntry('Cleared wipe flag');
+}
+
 function fixFavorites(profile)
 {
 	const inventory = profile.characters.pmc.Inventory;
@@ -419,6 +436,7 @@ function fixProfile(profile)
 	fixProductionProgress(profile);
 	fixFleaRep(profile);
 	fixStashTemplate(profile);
+	fixProfileWipe(profile);
 
 	// Only run these for SPT 3.10
 	if (profileSptVersion.includes('3.10'))
@@ -436,7 +454,10 @@ function fixProfile(profile)
 	if (logContainer.innerText === '')
 	{
 		addLogEntry('No profile issues detected!');
+		return false;
 	}
+
+	return true;
 }
 
 function disableDownload()
