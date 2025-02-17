@@ -52,6 +52,10 @@ function readerOnLoad(content)
 function refreshProfile()
 {
 	try {
+		// Clear out any existing log
+		const logContainer = document.getElementById('log');
+		logContainer.innerText = '';
+
 		const profileHolder = document.getElementById('profileHolder');
 		const profileJson = profileHolder.value;
 		if (profileJson.length === 0)
@@ -425,9 +429,6 @@ function fixDuplicateItems(profile, fixDuplicates)
 
 function fixProfile(profile)
 {
-	// Clear out any existing log
-	const logContainer = document.getElementById('log');
-	logContainer.innerText = '';
 	const profileSptVersion = profile.spt.version;
 
 	fixMagAmmo(profile);
@@ -451,6 +452,7 @@ function fixProfile(profile)
 	fixDuplicateItems(profile, fixDuplicates);
 
 	// If the log is still empty, show an "All Good" message
+	const logContainer = document.getElementById('log');
 	if (logContainer.innerText === '')
 	{
 		addLogEntry('No profile issues detected!');
