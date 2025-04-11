@@ -49,13 +49,17 @@ function readerOnLoad(content)
 	enableDownload();
 }
 
+function clearLog()
+{
+	// Clear out any existing log
+	const logContainer = document.getElementById('log');
+	logContainer.innerText = '';
+}
+
 function refreshProfile()
 {
 	try {
-		// Clear out any existing log
-		const logContainer = document.getElementById('log');
-		logContainer.innerText = '';
-
+		clearLog();
 		const profileHolder = document.getElementById('profileHolder');
 		const profileJson = profileHolder.value;
 		if (profileJson.length === 0)
@@ -427,6 +431,71 @@ function fixDuplicateItems(profile, fixDuplicates)
 	}
 }
 
+function fixMissingCustomizationStash(profile)
+{
+	const HIDEOUTAREACONTAINER_CUSTOMIZATION = "673c7b00cbf4b984b5099181";
+	const SORTINGTABLE_SORTING_TABLE = "602543c13fee350cd564d032";
+	const STASH_QUESTOFFLINE = "5963866b86f7747bfa1c4462";
+	const STASH_QUESTRAID = "5963866286f7747bf429b572";
+
+	const inventory = profile.characters.pmc.Inventory;
+	if (typeof inventory.hideoutCustomizationStashId === "undefined") {
+		inventory.hideoutCustomizationStashId = "676db384777490e23c45b657";
+		addLogEntry('Fixed missing hideout customization stash');
+
+        if (!inventory.items.find((item) => item._id === inventory.hideoutCustomizationStashId)) {
+            inventory.items.push({
+                _id: inventory.hideoutCustomizationStashId,
+                _tpl: HIDEOUTAREACONTAINER_CUSTOMIZATION,
+            });
+        }
+
+        if (!inventory.items.find((item) => item._id === inventory.sortingTable)) {
+            inventory.items.push({
+                _id: inventory.sortingTable,
+                _tpl: SORTINGTABLE_SORTING_TABLE,
+            });
+			addLogEntry('Fixed missing sorting table stash');
+        }
+
+        if (!inventory.items.find((item) => item._id === inventory.questStashItems)) {
+            inventory.items.push({
+                _id: inventory.questStashItems,
+                _tpl: STASH_QUESTOFFLINE,
+            });
+			addLogEntry('Fixed missing quest item stash');
+        }
+
+        if (!inventory.items.find((item) => item._id === inventory.questRaidItems)) {
+            inventory.items.push({
+                _id: inventory.questRaidItems,
+                _tpl: STASH_QUESTRAID,
+            });
+			addLogEntry('Fixed missing quest raid stash');
+        }
+	}
+}
+
+function removeInvalidRagfair(profile)
+{
+	const ragfairInfo = profile.characters.pmc.RagfairInfo;
+	const initialCount = ragfairInfo.offers.length;
+
+	// Filter any offer that has a null quantity, or contains an item with a null StackObjectsCount
+	ragfairInfo.offers = ragfairInfo.offers.filter((offer) => {
+		if (offer.quantity === null) return false;
+		if (offer.items.some((item) => item.upd && item.upd.StackObjectsCount === null)) return false;
+		return true;
+	});
+
+	// Check if we removed anything 
+	const finalCount = ragfairInfo.offers.length;
+	if (initialCount != finalCount)
+	{
+		addLogEntry(`Removed ${initialCount - finalCount} flea offer(s) with invalid data`);
+	}
+}
+
 function fixProfile(profile)
 {
 	const profileSptVersion = profile.spt.version;
@@ -440,11 +509,18 @@ function fixProfile(profile)
 	fixProfileWipe(profile);
 
 	// Only run these for SPT 3.10
-	if (profileSptVersion.includes('3.10'))
+	if (profileSptVersion.startsWith('3.10'))
 	{
 		fixFavorites(profile);
 		fixTraderDialogAttachments(profile);
 		fixTraderDialogMaxStorageTime(profile);
+	}
+
+	// Only run these for SPT 3.11
+	if (profileSptVersion.startsWith('3.11'))
+	{
+		fixMissingCustomizationStash(profile);
+		removeInvalidRagfair(profile);
 	}
 
 	// Pass in whether we should fix, or just report duplicates
@@ -492,6 +568,8 @@ function enableDownload()
 
 function downloadProfile()
 {
+	clearLog();
+
 	const profileHolder = document.getElementById('profileHolder');
 	const profile = JSON.parse(profileHolder.value);
 	fixProfile(profile);
