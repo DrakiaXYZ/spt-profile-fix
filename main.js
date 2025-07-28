@@ -308,6 +308,22 @@ function fixProfileWipe(profile)
 	addLogEntry('Cleared wipe flag');
 }
 
+function fixSkills(profile)
+{
+	const pmcSkills = profile.characters.pmc.Skills.Common;
+	for (const skill of pmcSkills)
+	{
+		if (isNaN(Number(skill.PointsEarnedDuringSession)))
+		{
+			addLogEntry(`Fixed invalid skill points earned for ${skill.Id}`);
+		}
+		if (isNaN(Number(skill.Progress)))
+		{
+			addLogEntry(`Fixed invalid skill progress for ${skill.Id}`);
+		}
+	}
+}
+
 function fixFavorites(profile)
 {
 	const inventory = profile.characters.pmc.Inventory;
@@ -507,6 +523,7 @@ function fixProfile(profile)
 	fixFleaRep(profile);
 	fixStashTemplate(profile);
 	fixProfileWipe(profile);
+	fixSkills(profile);
 
 	// Only run these for SPT 3.10
 	if (profileSptVersion.startsWith('3.10'))
