@@ -512,6 +512,23 @@ function removeInvalidRagfair(profile)
 	}
 }
 
+function fixHideoutMaxAreaLevels(profile)
+{
+	// I'm so sorry. This is how you generate the following object over the `areas.json` from SPT
+	// JSON.stringify(areas.map((area) => {return {areaType: area.type, maxLevel: Math.max(...Object.keys(area.stages))}}).reduce((acc, val) => {acc[val.areaType] = parseInt(val.maxLevel); return acc}, {}));
+	const maxAreaLevels = {"0":3,"1":3,"2":3,"3":4,"4":3,"5":3,"6":3,"7":3,"8":3,"9":3,"10":3,"11":3,"12":3,"13":1,"14":1,"15":3,"16":3,"17":1,"18":1,"19":1,"20":3,"22":6,"23":1,"24":3,"25":3,"26":3,"27":1};
+
+	const hideoutAreas = profile?.characters?.pmc?.Hideout?.Areas;
+	for (const area of hideoutAreas)
+	{
+		if (maxAreaLevels[area.type] && area.level > maxAreaLevels[area.type])
+		{
+			area.level = maxAreaLevels[area.type];
+			addLogEntry(`Hideout area ${area.type} over max level. Reduced to ${area.level}`);
+		}
+	}
+}
+
 function fixProfile(profile)
 {
 	const profileSptVersion = profile.spt.version;
@@ -538,6 +555,7 @@ function fixProfile(profile)
 	{
 		fixMissingCustomizationStash(profile);
 		removeInvalidRagfair(profile);
+		fixHideoutMaxAreaLevels(profile);
 	}
 
 	// Pass in whether we should fix, or just report duplicates
