@@ -447,6 +447,20 @@ function fixDuplicateItems(profile, fixDuplicates)
 	}
 }
 
+function fixRepeatableQuests(profile)
+{
+	const repeatables = profile.characters.pmc.RepeatableQuests;
+	for (const quest of repeatables)
+	{
+		// If the changeRequirements aren't set, but an endTime is, we need to reset the endTime, quest gen failed
+		if (quest.endTime != 0 && quest.changeRequirement == null)
+		{
+			quest.endTime = 0;
+			addLogEntry(`Found and reset invalid repeatable endTime for ${quest.name}`);
+		}
+	}
+}
+
 function fixMissingCustomizationStash(profile)
 {
 	const HIDEOUTAREACONTAINER_CUSTOMIZATION = "673c7b00cbf4b984b5099181";
@@ -561,6 +575,9 @@ function fixProfile(profile)
 	// Pass in whether we should fix, or just report duplicates
 	const fixDuplicates = document.getElementById('removeDuplicates').checked;
 	fixDuplicateItems(profile, fixDuplicates);
+
+	// Fix corrupted repeatable quest data
+	fixRepeatableQuests(profile);
 
 	// If the log is still empty, show an "All Good" message
 	const logContainer = document.getElementById('log');
