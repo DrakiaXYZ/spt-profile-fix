@@ -461,6 +461,17 @@ function fixRepeatableQuests(profile)
 	}
 }
 
+function fixLockedFence(profile)
+{
+	const FENCEID = "579dc571d53a0658a154fbec";
+	const traderInfo = profile.characters.pmc.TradersInfo;
+	if (traderInfo[FENCEID] && !traderInfo[FENCEID].unlocked)
+	{
+		traderInfo[FENCEID].unlocked = true;
+		addLogEntry("Found locked Fence trader, unlocked to allow daily quest generation");
+	}
+}
+
 function fixMissingCustomizationStash(profile)
 {
 	const HIDEOUTAREACONTAINER_CUSTOMIZATION = "673c7b00cbf4b984b5099181";
@@ -578,6 +589,7 @@ function fixProfile(profile)
 
 	// Fix corrupted repeatable quest data
 	fixRepeatableQuests(profile);
+	fixLockedFence(profile);
 
 	// If the log is still empty, show an "All Good" message
 	const logContainer = document.getElementById('log');
