@@ -324,6 +324,26 @@ function fixSkills(profile)
 	}
 }
 
+function fixWeirdGpCoins(profile)
+{
+	const MONEY_GP_COIN = '5d235b4d86f7742e017bc88a';
+
+	// Loop through `characters.pmc.Inventory.items` and find any GP coin that doesn't have an upd property
+	let fixedCoins = false;
+	for (const item of profile.characters.pmc.Inventory.items)
+	{
+		if (item._tpl !== MONEY_GP_COIN) continue;
+		if (item.upd) continue;
+
+		item.upd = {"StackObjectsCount": 1};
+		fixedCoins = true;
+	}
+
+	if (fixedCoins) {
+		addLogEntry(`Fixed corrupt GP Coin(s)`);
+	}
+}
+
 function fixFavorites(profile)
 {
 	const inventory = profile.characters.pmc.Inventory;
@@ -566,6 +586,7 @@ function fixProfile(profile)
 	fixStashTemplate(profile);
 	fixProfileWipe(profile);
 	fixSkills(profile);
+	fixWeirdGpCoins(profile);
 
 	// Only run these for SPT 3.10
 	if (profileSptVersion.startsWith('3.10'))
