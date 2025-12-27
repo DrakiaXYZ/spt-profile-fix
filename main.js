@@ -481,6 +481,27 @@ function fixRepeatableQuests(profile)
 	}
 }
 
+function fixPrestigeQuestDrops(profile)
+{
+	const eftStats = profile.characters.pmc.Stats.Eft;
+	const droppedItems = eftStats.DroppedItems;
+	const profileQuestIds = profile.characters.pmc.Quests.map(quest => quest.qid);
+	const removedDropQuests = new Set();
+
+	for (const droppedItem of droppedItems)
+	{
+		const questId = droppedItem.QuestId;
+		if (!profileQuestIds.includes(questId)) {
+			removedDropQuests.add(questId);
+		}
+	}
+
+	if (removedDropQuests.size > 0) {
+		eftStats.DroppedItems = eftStats.DroppedItems.filter(droppedItem => !removedDropQuests.has(droppedItem.QuestId));
+		addLogEntry(`Found and removed ${removedDropQuests.size} invalid quest drops`);
+	}
+}
+
 function fixLockedFence(profile)
 {
 	const FENCEID = "579dc571d53a0658a154fbec";
@@ -608,8 +629,8 @@ function fixProfile(profile)
 	const fixDuplicates = document.getElementById('removeDuplicates').checked;
 	fixDuplicateItems(profile, fixDuplicates);
 
-	// Fix corrupted repeatable quest data
 	fixRepeatableQuests(profile);
+	fixPrestigeQuestDrops(profile);
 	fixLockedFence(profile);
 
 	// If the log is still empty, show an "All Good" message
