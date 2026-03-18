@@ -344,6 +344,28 @@ function fixWeirdGpCoins(profile)
 	}
 }
 
+function fixMoneyRounding(profile)
+{
+	let madeChanges = false;
+	const currencyIds = ['5449016a4bdc2d6f028b456f', '569668774bdc2da2298b4568', '5696686a4bdc2da3298b456a', '5d235b4d86f7742e017bc88a'];
+
+	// Loop through `profile.characters.pmc.Inventory.items` and find any currency that isn't a whole number, round it
+	for (const item of profile.characters.pmc.Inventory.items)
+	{
+		if (currencyIds.includes(item._tpl)) {
+			if (!Number.isInteger(item.upd.StackObjectsCount)) {
+				item.upd.StackObjectsCount = Math.floor(item.upd.StackObjectsCount);
+				madeChanges = true;
+			}
+		}
+	}
+
+	if (madeChanges)
+	{
+		addLogEntry('Fixed partial money stack(s)');
+	}
+}
+
 function fixFavorites(profile)
 {
 	const inventory = profile.characters.pmc.Inventory;
@@ -608,6 +630,7 @@ function fixProfile(profile)
 	fixProfileWipe(profile);
 	fixSkills(profile);
 	fixWeirdGpCoins(profile);
+	fixMoneyRounding(profile);
 
 	// Only run these for SPT 3.10
 	if (profileSptVersion.startsWith('3.10'))
