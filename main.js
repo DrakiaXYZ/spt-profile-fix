@@ -136,7 +136,7 @@ function fixBuilds(profile)
 {
 	let madeChanges = false;
 
-	for (const [buildType, builds] of Object.entries(profile.userbuilds))
+	for (const [buildType, builds] of Object.entries(profile.userbuilds ?? {}))
 	{
 		// Skip null builds
 		if (!builds) continue;
@@ -315,11 +315,18 @@ function fixSkills(profile)
 	{
 		if (isNaN(Number(skill.PointsEarnedDuringSession)))
 		{
+			skill.PointsEarnedDuringSession = 0;
 			addLogEntry(`Fixed invalid skill points earned for ${skill.Id}`);
 		}
 		if (isNaN(Number(skill.Progress)))
 		{
+			skill.Progress = 0;
 			addLogEntry(`Fixed invalid skill progress for ${skill.Id}`);
+		}
+		if (skill.Progress < 0 || Object.is(skill.Progress, -0))
+		{
+			skill.Progress = 0;
+			addLogEntry(`Fixed negative skill progress for ${skill.Id}`)
 		}
 	}
 }
