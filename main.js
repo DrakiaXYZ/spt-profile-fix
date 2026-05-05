@@ -531,6 +531,28 @@ function fixPrestigeQuestDrops(profile)
 	}
 }
 
+function fixTerraGroupEmployeeQuest(profile)
+{
+	const colleaguesPart3 = profile.characters.pmc.Quests.find(quest => quest.qid == "5edac34d0bb72a50635c2bfa");
+	if (colleaguesPart3)
+	{
+		const sadist = profile.characters.pmc.Quests.find(quest => quest.qid == "5edab4b1218d181e29451435");
+		if (sadist)
+		{
+			if (sadist['status'] === 4 && colleaguesPart3['status'] === 0)
+			{
+				colleaguesPart3['status'] = 5;
+				addLogEntry(`Found invalid 'Colleagues Part 3' state, set to failed`);
+			}
+			else if (sadist['status'] === 0 && colleaguesPart3['status'] === 4)
+			{
+				sadist['status'] = 5;
+				addLogEntry(`Found invalid 'The Huntsman Path - Sadist' state, set to failed`);
+			}
+		}
+	}
+}
+
 function fixLockedFence(profile)
 {
 	const FENCEID = "579dc571d53a0658a154fbec";
@@ -661,6 +683,7 @@ function fixProfile(profile)
 
 	fixRepeatableQuests(profile);
 	fixPrestigeQuestDrops(profile);
+	fixTerraGroupEmployeeQuest(profile);
 	fixLockedFence(profile);
 
 	// If the log is still empty, show an "All Good" message
