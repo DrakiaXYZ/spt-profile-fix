@@ -646,6 +646,48 @@ function fixHideoutMaxAreaLevels(profile)
 	}
 }
 
+function fixUnknownHead(profile) {
+	const heads = {
+		Bear: [
+			"5cc084dd14c02e000b0550a3",
+			"5fdb50bb2b730a787b3f78cf",
+			"619f94f5b90286142b59d45f",
+			"5fdb7571e4ed5b5ea251e529",
+			"62a9e7d15ea3b87d6f642a28",
+			"60a6aaad42fd2735e4589978",
+			"675ac3957908e416a20861e6"
+		],
+		Usec: [
+			"5cde96047d6c8b20b577f016",
+			"6764194e4dec6d46f106f9f6",
+			"5fdb4139e4ed5b5ea251e4ed",
+			"62aca6a1310e67685a2fc2e7",
+			"60a6aa8fd559ae040d0d951f",
+			"619f9e338858a474c8685cc9",
+			"5fdb5950f5264a66150d1c6e",
+			"6574aabee0423b9ebe0c79cf"
+		]
+	};
+
+	if (!profile?.characters?.pmc?.Info || !profile?.characters?.pmc?.Customization) {
+		return;
+	}
+
+	const customization = profile.characters.pmc.Customization;
+
+	const validHeads = heads[profile.characters.pmc.Info.Side];
+	if (!validHeads) {
+		return;
+	}
+
+	if (validHeads.includes(customization.Head)) {
+		return;
+	}
+
+	customization.Head = validHeads[0];
+	addLogEntry("Fixed unknown head.");
+}
+
 function fixUnknownVoice(profile) {
 	const voices = {
 		Bear: [
@@ -698,6 +740,7 @@ function fixProfile(profile)
 	fixSkills(profile);
 	fixWeirdGpCoins(profile);
 	fixMoneyRounding(profile);
+	fixUnknownHead(profile);
 	fixUnknownVoice(profile);
 
 	// Only run these for SPT 3.10
