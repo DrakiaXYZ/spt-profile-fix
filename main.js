@@ -646,6 +646,44 @@ function fixHideoutMaxAreaLevels(profile)
 	}
 }
 
+function fixUnknownVoice(profile) {
+	const voices = {
+		Bear: [
+			"6284d6948e4092597733b7a5",
+			"5fc614da00efd824885865c2",
+			"6284d67f8e4092597733b7a4",
+			"5fc1221a95572123ae7384a2",
+			"5fc50bddb4965a7a2f48c5af"
+		],
+		Usec: [
+			"5fc615110b735e7b024c76ea",
+			"5fc1223595572123ae7384a3",
+			"5fc614f40b735e7b024c76e9",
+			"6284d6a28e4092597733b7a6",
+			"6284d6ab8e4092597733b7a7",
+			"668677330ae95580780867c6"
+		]
+	};
+
+	if (!profile?.characters?.pmc?.Info || !profile?.characters?.pmc?.Customization) {
+		return;
+	}
+
+	const customization = profile.characters.pmc.Customization;
+
+	const validVoices = voices[profile.characters.pmc.Info.Side];
+	if (!validVoices) {
+		return;
+	}
+
+	if (validVoices.includes(customization.Voice)) {
+		return;
+	}
+
+	customization.Voice = validVoices[0];
+	addLogEntry("Fixed unknown voice.");
+}
+
 function fixProfile(profile)
 {
 	const profileSptVersion = profile.spt.version;
@@ -660,6 +698,7 @@ function fixProfile(profile)
 	fixSkills(profile);
 	fixWeirdGpCoins(profile);
 	fixMoneyRounding(profile);
+	fixUnknownVoice(profile);
 
 	// Only run these for SPT 3.10
 	if (profileSptVersion.startsWith('3.10'))
