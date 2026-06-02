@@ -10,6 +10,9 @@ function main()
 	const removeDuplicateCheckbox = document.getElementById('removeDuplicates');
 	removeDuplicateCheckbox.addEventListener('change', refreshProfile);
 
+	const resetHeadVoiceCheckbox = document.getElementById('resetHeadVoice');
+	resetHeadVoiceCheckbox.addEventListener('change', refreshProfile);
+
 	// Enable tooltips
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 	const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
@@ -646,7 +649,7 @@ function fixHideoutMaxAreaLevels(profile)
 	}
 }
 
-function fixUnknownHead(profile) {
+function fixUnknownHead(profile, reset) {
 	const heads = {
 		Bear: [
 			"5cc084dd14c02e000b0550a3",
@@ -684,11 +687,15 @@ function fixUnknownHead(profile) {
 		return;
 	}
 
-	customization.Head = validHeads[0];
-	addLogEntry("Fixed unknown head.");
+	if (reset) {
+		customization.Head = validHeads[0];
+		addLogEntry('Fixed unknown head.');
+	} else {
+		addLogEntry('Found non-default head. Check Head & Voice checkbox to reset.');
+	}
 }
 
-function fixUnknownVoice(profile) {
+function fixUnknownVoice(profile, reset) {
 	const voices = {
 		Bear: [
 			"6284d6948e4092597733b7a5",
@@ -722,8 +729,12 @@ function fixUnknownVoice(profile) {
 		return;
 	}
 
-	customization.Voice = validVoices[0];
-	addLogEntry("Fixed unknown voice.");
+	if (reset) {
+		customization.Voice = validVoices[0];
+		addLogEntry("Fixed unknown voice.");
+	} else {
+		addLogEntry('Found non-default voice. Check Head & Voice checkbox to reset.');
+	}
 }
 
 function fixProfile(profile)
@@ -740,8 +751,10 @@ function fixProfile(profile)
 	fixSkills(profile);
 	fixWeirdGpCoins(profile);
 	fixMoneyRounding(profile);
-	fixUnknownHead(profile);
-	fixUnknownVoice(profile);
+
+	const resetHeadVoice = document.getElementById('resetHeadVoice').checked;
+	fixUnknownHead(profile, resetHeadVoice);
+	fixUnknownVoice(profile, resetHeadVoice);
 
 	// Only run these for SPT 3.10
 	if (profileSptVersion.startsWith('3.10'))
