@@ -10,6 +10,9 @@ function main()
 	const removeDuplicateCheckbox = document.getElementById('removeDuplicates');
 	removeDuplicateCheckbox.addEventListener('change', refreshProfile);
 
+	const resetHeadVoiceCheckbox = document.getElementById('resetHeadVoice');
+	resetHeadVoiceCheckbox.addEventListener('change', refreshProfile);
+
 	// Enable tooltips
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 	const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
@@ -646,6 +649,94 @@ function fixHideoutMaxAreaLevels(profile)
 	}
 }
 
+function fixUnknownHead(profile, reset) {
+	const heads = {
+		Bear: [
+			"5cc084dd14c02e000b0550a3",
+			"5fdb50bb2b730a787b3f78cf",
+			"619f94f5b90286142b59d45f",
+			"5fdb7571e4ed5b5ea251e529",
+			"62a9e7d15ea3b87d6f642a28",
+			"60a6aaad42fd2735e4589978",
+			"675ac3957908e416a20861e6"
+		],
+		Usec: [
+			"5cde96047d6c8b20b577f016",
+			"6764194e4dec6d46f106f9f6",
+			"5fdb4139e4ed5b5ea251e4ed",
+			"62aca6a1310e67685a2fc2e7",
+			"60a6aa8fd559ae040d0d951f",
+			"619f9e338858a474c8685cc9",
+			"5fdb5950f5264a66150d1c6e",
+			"6574aabee0423b9ebe0c79cf"
+		]
+	};
+
+	if (!profile?.characters?.pmc?.Info || !profile?.characters?.pmc?.Customization) {
+		return;
+	}
+
+	const customization = profile.characters.pmc.Customization;
+
+	const validHeads = heads[profile.characters.pmc.Info.Side];
+	if (!validHeads) {
+		return;
+	}
+
+	if (validHeads.includes(customization.Head)) {
+		return;
+	}
+
+	if (reset) {
+		customization.Head = validHeads[0];
+		addLogEntry('Fixed unknown head.');
+	} else {
+		addLogEntry('Found non-default head. Check Head & Voice checkbox to reset.');
+	}
+}
+
+function fixUnknownVoice(profile, reset) {
+	const voices = {
+		Bear: [
+			"6284d6948e4092597733b7a5",
+			"5fc614da00efd824885865c2",
+			"6284d67f8e4092597733b7a4",
+			"5fc1221a95572123ae7384a2",
+			"5fc50bddb4965a7a2f48c5af"
+		],
+		Usec: [
+			"5fc615110b735e7b024c76ea",
+			"5fc1223595572123ae7384a3",
+			"5fc614f40b735e7b024c76e9",
+			"6284d6a28e4092597733b7a6",
+			"6284d6ab8e4092597733b7a7",
+			"668677330ae95580780867c6"
+		]
+	};
+
+	if (!profile?.characters?.pmc?.Info || !profile?.characters?.pmc?.Customization) {
+		return;
+	}
+
+	const customization = profile.characters.pmc.Customization;
+
+	const validVoices = voices[profile.characters.pmc.Info.Side];
+	if (!validVoices) {
+		return;
+	}
+
+	if (validVoices.includes(customization.Voice)) {
+		return;
+	}
+
+	if (reset) {
+		customization.Voice = validVoices[0];
+		addLogEntry("Fixed unknown voice.");
+	} else {
+		addLogEntry('Found non-default voice. Check Head & Voice checkbox to reset.');
+	}
+}
+
 function fixProfile(profile)
 {
 	const profileSptVersion = profile.spt.version;
@@ -660,6 +751,10 @@ function fixProfile(profile)
 	fixSkills(profile);
 	fixWeirdGpCoins(profile);
 	fixMoneyRounding(profile);
+
+	const resetHeadVoice = document.getElementById('resetHeadVoice').checked;
+	fixUnknownHead(profile, resetHeadVoice);
+	fixUnknownVoice(profile, resetHeadVoice);
 
 	// Only run these for SPT 3.10
 	if (profileSptVersion.startsWith('3.10'))
