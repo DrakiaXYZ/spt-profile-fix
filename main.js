@@ -44,12 +44,7 @@ function readerOnLoad(content)
 	// Store the profile data so we can process it on download
 	const profileHolder = document.getElementById('profileHolder');
 	profileHolder.value = content;
-	if (!refreshProfile())
-	{
-		return;
-	}
-
-	enableDownload();
+	refreshProfile();
 }
 
 function clearLog()
@@ -62,12 +57,13 @@ function clearLog()
 function refreshProfile()
 {
 	try {
+		disableDownload();
 		clearLog();
 		const profileHolder = document.getElementById('profileHolder');
 		const profileJson = profileHolder.value;
 		if (profileJson.length === 0)
 		{
-			return false;
+			return;
 		}
 		const profile = JSON.parse(profileJson);
 
@@ -75,16 +71,19 @@ function refreshProfile()
 		if (!profile?.characters?.pmc?.Info)
 		{
 			addLogEntry('Unused profile, nothing to fix!');
-			return false;
+			return;
 		}
 
 		// This is purely superfluous so we get any exceptions before the user hits Download
-		return fixProfile(profile);
+		if (fixProfile(profile))
+		{
+			enableDownload();
+		}
 	} catch (ex) {
 		addLogEntry('Error processing profile', false);
 		console.error('Error parsing profile');
 		console.error(ex);
-		return false;
+		return;
 	}
 }
 
@@ -649,7 +648,7 @@ function fixHideoutMaxAreaLevels(profile)
 	}
 }
 
-function fixUnknownHead(profile, reset) {
+function fixUnknownHead(profile) {
 	const heads = {
 		Bear: [
 			"5cc084dd14c02e000b0550a3",
@@ -687,15 +686,11 @@ function fixUnknownHead(profile, reset) {
 		return;
 	}
 
-	if (reset) {
-		customization.Head = validHeads[0];
-		addLogEntry('Fixed unknown head.');
-	} else {
-		addLogEntry('Found non-default head. Check Head & Voice checkbox to reset.');
-	}
+	customization.Head = validHeads[0];
+	addLogEntry("Found and reset unknown head");
 }
 
-function fixUnknownVoice(profile, reset) {
+function fixUnknownVoice(profile) {
 	const voices = {
 		Bear: [
 			"6284d6948e4092597733b7a5",
@@ -729,12 +724,8 @@ function fixUnknownVoice(profile, reset) {
 		return;
 	}
 
-	if (reset) {
-		customization.Voice = validVoices[0];
-		addLogEntry("Fixed unknown voice.");
-	} else {
-		addLogEntry('Found non-default voice. Check Head & Voice checkbox to reset.');
-	}
+	customization.Voice = validVoices[0];
+	addLogEntry("Found and reset unknown voice");
 }
 
 function fixProfile(profile)
@@ -753,8 +744,10 @@ function fixProfile(profile)
 	fixMoneyRounding(profile);
 
 	const resetHeadVoice = document.getElementById('resetHeadVoice').checked;
-	fixUnknownHead(profile, resetHeadVoice);
-	fixUnknownVoice(profile, resetHeadVoice);
+	if (resetHeadVoice) {
+		fixUnknownHead(profile);
+		fixUnknownVoice(profile);
+	}
 
 	// Only run these for SPT 3.10
 	if (profileSptVersion.startsWith('3.10'))
